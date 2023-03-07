@@ -24,7 +24,7 @@ List<DropdownMenuItem<String>>? get getModelsItem {
                 fontSize: 15,
               )));
   return modelItems;
-}*/
+}
 
 final chatMessages = [
   {
@@ -54,4 +54,4 @@ final chatMessages = [
         "You're welcome! Let me know if you have any other questions or if there's anything else I can help you with.",
     "chatIndex": 1,
   },
-];
+];*/
