@@ -45,19 +45,23 @@ class ChatWidget extends StatelessWidget {
                               color: Colors.white,
                               fontWeight: FontWeight.w500,
                             ),
-                            child: AnimatedTextKit(
-                              isRepeatingAnimation: false,
-                              repeatForever: false,
-                              displayFullTextOnTap: true,
-                              totalRepeatCount: 1,
-                              animatedTexts: [
-                                TyperAnimatedText(
-                                  message.trim(),
-                                )
-                              ],
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(0.0,8.0,20.0,8.0),
+                              child: AnimatedTextKit(
+                                isRepeatingAnimation: false,
+                                repeatForever: false,
+                                displayFullTextOnTap: true,
+                                totalRepeatCount: 1,
+                                animatedTexts: [
+                                  TyperAnimatedText(
+                                    textAlign: TextAlign.justify,
+                                    message.trim(),
+                                  )
+                                ],
+                              ),
                             ),
                           )),
-                chatIndex == 0
+               /* chatIndex == 0
                     ? const SizedBox.shrink()
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -75,7 +79,7 @@ class ChatWidget extends StatelessWidget {
                             color: Colors.white,
                           )
                         ],
-                      )
+                      )*/
               ],
             ),
           ),

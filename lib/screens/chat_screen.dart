@@ -89,39 +89,41 @@ class _ChatScreenState extends State<ChatScreen> {
                 size: 18,
               ),
             ],
-            const SizedBox(
-              height: 15,
-            ),
-            Material(
-              color: cardColor,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                        child: TextField(
-                      style: const TextStyle(color: Colors.white),
-                      controller: textEditingController,
-                      focusNode: focusNode,
-                      onSubmitted: (value) async {
-                        await sendMessages(
-                            modelsProvider: modelsProvider,
-                            chatProvider: chatProvider);
-                      },
-                      decoration: const InputDecoration.collapsed(
-                          hintText: 'How can i help you.',
-                          hintStyle: TextStyle(color: Colors.grey)),
-                    )),
-                    IconButton(
-                      onPressed: () async {
-                        await sendMessages(
-                            modelsProvider: modelsProvider,
-                            chatProvider: chatProvider);
-                      },
-                      icon: const Icon(Icons.send),
-                      color: Colors.white,
-                    )
-                  ],
+
+            Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: Card(
+                color: cardColor,
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(15.0, 8.0, 8.0, 8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: TextField(
+                        style: const TextStyle(color: Colors.white),
+                        controller: textEditingController,
+                        focusNode: focusNode,
+                        onSubmitted: (value) async {
+                          await sendMessages(
+                              modelsProvider: modelsProvider,
+                              chatProvider: chatProvider);
+                        },
+                        decoration: const InputDecoration.collapsed(
+                            hintText: 'How can i help you...',
+                            hintStyle: TextStyle(color: Colors.grey)),
+                      )),
+                      IconButton(
+                        onPressed: () async {
+                          await sendMessages(
+                              modelsProvider: modelsProvider,
+                              chatProvider: chatProvider);
+                        },
+                        icon: const Icon(Icons.send),
+                        color: Colors.white,
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
