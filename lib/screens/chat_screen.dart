@@ -2,11 +2,13 @@ import 'dart:developer';
 
 import 'package:chatgpt_flutter/constants/constant.dart';
 import 'package:chatgpt_flutter/models/chat_model.dart';
+import 'package:chatgpt_flutter/providers/chat_provider.dart';
 import 'package:chatgpt_flutter/providers/models_provider.dart';
 import 'package:chatgpt_flutter/services/api_service.dart';
 import 'package:chatgpt_flutter/services/assets_manager.dart';
 import 'package:chatgpt_flutter/services/services.dart';
 import 'package:chatgpt_flutter/widgets/chat_widget.dart';
+import 'package:chatgpt_flutter/widgets/text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
@@ -21,10 +23,14 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   bool _isTyping = false;
   late TextEditingController textEditingController;
+  late ScrollController _listScrollController;
   late FocusNode focusNode;
+
+  //List<ChatModel> chatList = [];
 
   @override
   void initState() {
+    _listScrollController = ScrollController();
     textEditingController = TextEditingController();
     focusNode = FocusNode();
     super.initState();
@@ -32,16 +38,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    _listScrollController.dispose();
     textEditingController.dispose();
     focusNode.dispose();
     super.dispose();
   }
 
-  List<ChatModel> chatList = [];
-
   @override
   Widget build(BuildContext context) {
     final modelsProvider = Provider.of<ModelsProvider>(context);
+    final chatProvider = Provider.of<ChatProvider>(context);
     return Scaffold(
       appBar: AppBar(
         elevation: 2,
@@ -66,11 +72,14 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             Flexible(
               child: ListView.builder(
-                  itemCount: chatList.length,
+                  controller: _listScrollController,
+                  itemCount: chatProvider.getChatList.length, //chatList.length,
                   itemBuilder: (context, index) {
                     return ChatWidget(
-                      message: chatList[index].msg,
-                      chatIndex: chatList[index].chatIndex,
+                      message: chatProvider.getChatList[index].message,
+                      //chatList[index].message,
+                      chatIndex: chatProvider.getChatList[index]
+                          .chatIndex, //chatList[index].chatIndex,
                     );
                   }),
             ),
@@ -95,7 +104,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       controller: textEditingController,
                       focusNode: focusNode,
                       onSubmitted: (value) async {
-                        await sendMessages(modelsProvider: modelsProvider);
+                        await sendMessages(
+                            modelsProvider: modelsProvider,
+                            chatProvider: chatProvider);
                       },
                       decoration: const InputDecoration.collapsed(
                           hintText: 'How can i help you.',
@@ -103,7 +114,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     )),
                     IconButton(
                       onPressed: () async {
-                        await sendMessages(modelsProvider: modelsProvider);
+                        await sendMessages(
+                            modelsProvider: modelsProvider,
+                            chatProvider: chatProvider);
                       },
                       icon: const Icon(Icons.send),
                       color: Colors.white,
@@ -118,22 +131,56 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Future<void> sendMessages({required ModelsProvider modelsProvider}) async {
+  void scrollListToEnd() {
+    _listScrollController.animateTo(
+        _listScrollController.position.maxScrollExtent,
+        duration: const Duration(seconds: 2),
+        curve: Curves.easeOut);
+  }
+
+
+  Future<void> sendMessages(
+      {required ModelsProvider modelsProvider,
+      required ChatProvider chatProvider}) async {
+    if (_isTyping) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: TextWidget(label: 'You cant send message at a time'),
+        backgroundColor: Colors.red,
+      ));
+      return;
+    }
+
+    if (textEditingController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: TextWidget(label: 'Please type a message'),
+        backgroundColor: Colors.red,
+      ));
+      return;
+    }
     try {
+      String message = textEditingController.text;
       setState(() {
         _isTyping = true;
-        chatList.add(ChatModel(msg: textEditingController.text, chatIndex: 0));
+        //chatList.add(ChatModel(message: textEditingController.text, chatIndex: 0));
+        chatProvider.assUserMessage(message: message);
         textEditingController.clear();
         focusNode.unfocus();
       });
-      chatList.addAll(await ApiService.sendMessage(
+      await chatProvider.sendMessageAndGetAnswers(
+         chosenModelId: modelsProvider.getCurrentModel, message: message);
+      /*chatList.addAll(await ApiService.sendMessage(
           message: textEditingController.text,
-          modelId: modelsProvider.getCurrentModel));
+          modelId: modelsProvider.getCurrentModel));*/
       setState(() {});
     } catch (error) {
       log('error: $error');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: TextWidget(label: error.toString()),
+        backgroundColor: Colors.red,
+      ));
     } finally {
       setState(() {
+        scrollListToEnd();
         _isTyping = false;
       });
     }
